@@ -1,0 +1,24 @@
+<RCC>
+    <qresource prefix="/png">
+        <file>images/lines.png</file>
+        <file>images/rect.png</file>
+        <file>images/ellipse.png</file>
+        <file>images/open.png</file>
+        <file>images/save.png</file>
+        <file>images/saveas.png</file>
+        <file>images/line.png</file>
+        <file>images/texts.png</file>
+        <file>images/1.png</file>
+        <file>images/help.png</file>
+        <file>images/info.png</file>
+        <file>images/coop.png</file>
+        <file>images/about.png</file>
+        <file>images/quit.png</file>
+        <file>images/black.png</file>
+        <file>images/blue.png</file>
+        <file>images/red.png</file>
+        <file>images/cursor.png</file>
+        <file>images/warn.png</file>
+        <file>images/undo.png</file>
+    </qresource>
+</RCC>
