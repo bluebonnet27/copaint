@@ -23,6 +23,7 @@
 #include <QScrollArea>
 #include <QStatusBar>
 #include <QMenuBar>
+#include <QString>
 
 using namespace std;
 
@@ -56,6 +57,8 @@ private:
     QBrush _brush;
     QLabel *pstatusLabel = new QLabel(QStringLiteral("就绪"));
     QLabel *pixLabel = new QLabel(QStringLiteral("1280x720"));
+    QString px;
+    QString py;
 public:
     QVector<QVector<QPoint> > _lines;//线条集合(一条线条可包含多个线段)
     QVector<QRect> _rects;//矩形集合

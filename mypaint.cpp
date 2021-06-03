@@ -1,5 +1,6 @@
 #include "mypaint.h"
 #include <QDebug>
+#include <iostream>
 MyPaint::MyPaint(QWidget *parent) :
     QMainWindow(parent)
 {
@@ -335,7 +336,7 @@ void MyPaint::mouseMoveEvent(QMouseEvent *e)
             if(_lines.size()<=0) return;//线条集合为空，不画线
             QVector<QPoint>& lastLine = _lines.last();//最后添加的线条，就是最新画的
             lastLine.append(e->pos());//记录鼠标的坐标(线条的轨迹)
-            pstatusLabel->setText("使用铅笔画线");
+            pstatusLabel->setText("使用铅笔画线");//更新状态栏
             update();//触发窗体重绘
         }
         else if(_drawType == 2)
@@ -344,7 +345,7 @@ void MyPaint::mouseMoveEvent(QMouseEvent *e)
             {
                 QRect& lastRect = _rects.last();//拿到新矩形
                 lastRect.setBottomRight(e->pos());//更新矩形的右下角坐标
-                pstatusLabel->setText("画矩形");
+                pstatusLabel->setText("画矩形");//更新状态栏
             }
             else//拖拽模式
             {
@@ -356,7 +357,7 @@ void MyPaint::mouseMoveEvent(QMouseEvent *e)
                     lastRect = lastRect.adjusted(dx,dy,dx,dy);//更新矩形的位置
                     _begin = e->pos();//刷新拖拽点起始坐标
                 }
-                pstatusLabel->setText("拖动矩形");
+                pstatusLabel->setText("拖动矩形");//更新状态栏
 
             }
             update();//触发窗体重绘
@@ -367,21 +368,21 @@ void MyPaint::mouseMoveEvent(QMouseEvent *e)
             if(_drag == 0)//非拖拽
             {
                 QRect& lastEllipse = _ellipse.last();//拿到新椭圆
-                lastEllipse.setBottomRight(e->pos());//更新椭圆的右下角坐标)
-                pstatusLabel->setText("画椭圆");
+                lastEllipse.setBottomRight(e->pos());//更新椭圆的右下角坐标
+                pstatusLabel->setText("画椭圆");//更新状态栏
 
             }
             else//拖拽
             {
-                QRect& lastEllipse = _ellipse.last();//拿到最后添加的矩形
+                QRect& lastEllipse = _ellipse.last();//拿到最后添加的椭圆
                 if(lastEllipse.contains(e->pos()))//在椭圆内部
                 {
                     int dx = e->pos().x()-_begin.x();//横向移动x
                     int dy = e->pos().y()-_begin.y();//纵向移动y
-                    lastEllipse = lastEllipse.adjusted(dx,dy,dx,dy);
+                    lastEllipse = lastEllipse.adjusted(dx,dy,dx,dy);//更新椭圆的位置
                     _begin = e->pos();//刷新拖拽点起始坐标
                 }
-                pstatusLabel->setText("拖动椭圆");
+                pstatusLabel->setText("拖动椭圆");//更新状态栏
 
             }
             update();//触发窗体重绘
@@ -389,12 +390,20 @@ void MyPaint::mouseMoveEvent(QMouseEvent *e)
         else if(_drawType == 4)
         {
             QRect& lastLine = _line.last();//拿到新直线
-            lastLine.setBottomRight(e->pos());//更新直线另一端)
-            pstatusLabel->setText("画直线");
+            lastLine.setBottomRight(e->pos());//更新直线另一端
+            pstatusLabel->setText("画直线");//更新状态栏
             update();//触发窗体重绘
         }
     }
+    else
+    {
+        px = QString::number(e->pos().x());
+        py = QString::number(e->pos().y());
 
+        pixLabel->setText(px+"X"+py);
+        update();
+        //cout << e->pos().x() << "," << e->pos().y() << endl;
+    }
 
 }
 
@@ -416,10 +425,10 @@ void MyPaint::mouseReleaseEvent(QMouseEvent *e)
                 lastRect.setBottomRight(e->pos());//不是拖拽时，更新矩形的右下角坐标)
                 //刚画完矩形，将光标设置到新矩形的中心位置，并进入拖拽模式
                 this->cursor().setPos(this->cursor().pos().x()-lastRect.width()/2,this->cursor().pos().y()-lastRect.height()/2);
-                _drag = 1;
+                _drag = 1;//进入拖拽模式
 
             }
-            _lpress = false;
+            _lpress = false;//标志左键释放
 
         }
         else if(_drawType == 3)
@@ -430,15 +439,15 @@ void MyPaint::mouseReleaseEvent(QMouseEvent *e)
                 lastEllipse.setBottomRight(e->pos());//不是拖拽时，更新椭圆的右下角坐标)
                 //刚画完椭圆，将光标设置到新椭圆的中心位置，并进入拖拽模式
                 this->cursor().setPos(this->cursor().pos().x()-lastEllipse.width()/2,this->cursor().pos().y()-lastEllipse.height()/2);
-                _drag = 1;
+                _drag = 1;//进入拖拽模式
 
             }
             _lpress = false;
         }
         else if(_drawType == 4)
         {
-            QRect& lastLine = _line.last();//拿到新矩形
-            lastLine.setBottomRight(e->pos());//更新矩形的右下角坐标)
+            QRect& lastLine = _line.last();//拿到新直线
+            lastLine.setBottomRight(e->pos());//更新直线的右下角坐标
             _lpress = false;
 
         }
@@ -563,8 +572,8 @@ void MyPaint::OpenPic()
 void MyPaint::contextMenuEvent(QContextMenuEvent *)  //右键菜单事件
 {
     _Rmenu->exec(cursor().pos());//在光标位置弹出菜单
-    pstatusLabel->setText("右键菜单");
-    update();
+    pstatusLabel->setText("右键菜单");//更新状态栏
+    update();//刷新界面
 }
 
 void MyPaint::keyPressEvent(QKeyEvent *e) //按键事件
@@ -587,7 +596,7 @@ void MyPaint::keyPressEvent(QKeyEvent *e) //按键事件
              }
              _shape.pop_back();
              _drag = 0;//设置为非拖拽模式
-             pstatusLabel->setText("撤销了一个操作");
+             pstatusLabel->setText("撤销了一个操作");//更新状态栏
              update();
          }
      }
