@@ -20,5 +20,7 @@
         <file>images/cursor.png</file>
         <file>images/warn.png</file>
         <file>images/undo.png</file>
+        <file>images/copy.png</file>
+        <file>images/paste.png</file>
     </qresource>
 </RCC>

@@ -11,7 +11,7 @@ MyPaint::MyPaint(QWidget *parent) :
      _openflag = 0;//初始不打开图片
      _tEdit = new QTextEdit(this);//初始化文本输入框
      _tEdit->hide();//隐藏
-     _brush = Qt::red;
+     _brush = Qt::white;
      this->setGeometry(120,80,1280,720);//设置窗体大小、位置
      setMouseTracking(true);//开启鼠标实时追踪，监听鼠标移动事件，默认只有按下时才监听
      this->setStyleSheet("background-color:white;");
@@ -35,8 +35,10 @@ MyPaint::MyPaint(QWidget *parent) :
     //tbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     _Rmenu = new QMenu(this);//创建右键菜单
+    _Rmenu->addAction(QIcon(":/png/images/copy.png"),tr("复制  \tCtrl+C"), this, SLOT(SetPicToClipboard()));//添加菜单动作
+    _Rmenu->addAction(QIcon(":/png/images/paste.png"),tr("粘贴  \tCtrl+V"), this, SLOT(GetPicFromClipboard()));//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/save.png"),tr("保存  \tCtrl+S"), this, SLOT(SavePic()));//添加菜单动作
-    _Rmenu->addAction(QIcon(":/png/images/undo.png"),tr("撤销操作"),this,SLOT(UndoPic()));
+    _Rmenu->addAction(QIcon(":/png/images/undo.png"),tr("撤销操作 \tCtrl+Z"),this,SLOT(UndoPic()));
     _Rmenu->addAction(QIcon(":/png/images/quit.png"),tr("退出  \tALT+F4"), this, SLOT(close()));//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/help.png"),tr("帮助  \tCtrl+H"), this, SLOT(GetHelp()));//添加菜单动作
     _Rmenu->setStyleSheet("background-color:rgb(33,150,243)");//设置背景色
@@ -92,6 +94,18 @@ MyPaint::MyPaint(QWidget *parent) :
     textAction->setShortcut(QKeySequence(tr("Ctrl+T")));//热键
     tbar->addAction(textAction);
     paintMenu->addAction(textAction);
+
+    QAction *copyAction = new QAction(tr("&复制"), this);//文字动作
+    copyAction->setIcon(QIcon(":/png/images/copy.png"));//图标
+    copyAction->setShortcut(QKeySequence(tr("Ctrl+C")));//热键
+    tbar->addAction(copyAction);
+    //paintMenu->addAction(textAction);
+
+    QAction *pasteAction = new QAction(tr("&粘贴"), this);//文字动作
+    pasteAction->setIcon(QIcon(":/png/images/paste.png"));//图标
+    pasteAction->setShortcut(QKeySequence(tr("Ctrl+V")));//热键
+    tbar->addAction(pasteAction);
+    //paintMenu->addAction(textAction);
 
     QAction *coopAction = new QAction(tr("&合作"),this);
     coopAction->setIcon(QIcon(":/png/images/coop.png"));
@@ -158,6 +172,10 @@ MyPaint::MyPaint(QWidget *parent) :
     connect(textAction, SIGNAL(triggered()), this, SLOT(Texts()));
     //文字输入
     connect(_tEdit, SIGNAL(textChanged()), this, SLOT(AddTexts()));
+    //复制
+    connect(copyAction,SIGNAL(triggered()),this,SLOT(SetPicToClipboard()));
+    //粘贴
+    connect(pasteAction,SIGNAL(triggered()),this,SLOT(GetPicFromClipboard()));
     //合作
     connect(coopAction,SIGNAL(triggered()),this,SLOT(ErrorFunction()));
     //帮助
@@ -198,6 +216,7 @@ void MyPaint::paintEvent(QPaintEvent *)
 
     for(int c = 0;c<_shape.size();++c)//控制用户当前所绘图形总数
     {
+        //p.setBrush(Qt::white);
         if(_shape.at(c) == 1)//线条
         {
               const QVector<QPoint>& line = _lines.at(i1++);//取出一条线条
@@ -210,6 +229,7 @@ void MyPaint::paintEvent(QPaintEvent *)
         else if(_shape.at(c) == 2)//矩形
         {
              p.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);//反锯齿
+             //p.setBrush(_brush);
              p.drawRect(_rects.at(i2++));
         }
         else if(_shape.at(c) == 3)//椭圆
@@ -331,6 +351,10 @@ void MyPaint::mouseMoveEvent(QMouseEvent *e)
 
     if(_lpress)
     {
+        px = QString::number(e->pos().x());
+        py = QString::number(e->pos().y());
+
+        pixLabel->setText(px+"X"+py);
         if(_drawType == 1)//铅笔画线
         {
             if(_lines.size()<=0) return;//线条集合为空，不画线
@@ -650,10 +674,10 @@ void MyPaint::ErrorFunction(){
     QDialog *errorDialog = new QDialog();
     errorDialog->resize(400,300);
     errorDialog->setWindowIcon(QIcon(":/png/images/warn.png"));
-    errorDialog->setWindowTitle("还未开发的功能");
+    errorDialog->setWindowTitle("ERROR!");
 
     QLabel *errorLabel = new QLabel(errorDialog);
-    errorLabel->setText("还未开发的功能！");
+    errorLabel->setText("ERROR!");
     errorLabel->setMargin(20);
 
     errorDialog->exec();
@@ -685,4 +709,37 @@ void MyPaint::UndoPic(){
         pstatusLabel->setText("撤销了一个操作");
         update();
     }
+}
+
+void MyPaint::GetPicFromClipboard(){
+    const QClipboard *clipboard = QApplication::clipboard();
+    const QMimeData *rawData = clipboard->mimeData();
+
+    if(rawData->hasImage()){
+        QPixmap pix = qvariant_cast<QPixmap>(rawData->imageData());
+        QPainter p(&_pixmap);
+        p.drawPixmap(0,30,pix);//添加工具栏的空间
+        _openflag = 1;//设置文件打开标志
+        update();//触发窗体重绘，将图片画到窗体
+    }else {
+        ErrorFunction();
+    }
+}
+
+void MyPaint::SetPicToClipboard(){
+    QClipboard *clipboard = QApplication::clipboard();
+    //QMimeData mimeData;
+
+    QPixmap pixmap(size());//新建窗体大小的pixmap
+    QPainter painter(&pixmap);//将pixmap作为画布
+    painter.fillRect(QRect(0, 0, size().width(), size().height()), Qt::white);//设置绘画区域、画布颜色
+    this->render(&painter);//将窗体渲染到painter，再由painter画到画布
+    pixmap.copy(QRect(0,60,size().width(),size().height()-30));//不包含工具栏
+
+    if(!pixmap){
+        ErrorFunction();
+    }
+
+    //mimeData.setImageData(pixmap);
+    clipboard->setPixmap(pixmap);
 }

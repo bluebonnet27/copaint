@@ -24,6 +24,9 @@
 #include <QStatusBar>
 #include <QMenuBar>
 #include <QString>
+#include <QApplication>
+#include <QClipboard>
+#include <QMimeData>
 
 using namespace std;
 
@@ -50,6 +53,7 @@ private:
     int _lpress;//左键按下标志
     int _drag;//拖拽标志
     int _drawType;//描绘类型
+    int _shapes;//
     QMenu *_Rmenu;//右键菜单
     int _openflag;//打开图片
     QPixmap _pixmap;//画布图片
@@ -85,6 +89,8 @@ public slots:
     void RedBrush();
     void BlueBrush();
     void BlackBrush();
+    void GetPicFromClipboard();//从剪切板获取图片
+    void SetPicToClipboard();//把图片复制到剪切板里
     void GetHelp();//获取帮助
     void GetAbout();//获取软件信息
     void ErrorFunction();//未开发的功能的提示
