@@ -22,5 +22,12 @@
         <file>images/undo.png</file>
         <file>images/copy.png</file>
         <file>images/paste.png</file>
+        <file>images/delete.png</file>
+        <file>images/email.png</file>
+        <file>images/internet.png</file>
+        <file>images/github.png</file>
+        <file>images/circle.png</file>
+        <file>images/roundrect.png</file>
+        <file>images/refresh.png</file>
     </qresource>
 </RCC>

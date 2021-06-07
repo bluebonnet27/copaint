@@ -35,6 +35,7 @@ MyPaint::MyPaint(QWidget *parent) :
     //tbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     _Rmenu = new QMenu(this);//创建右键菜单
+    _Rmenu->addAction(QIcon(":/png/images/refresh.png"),tr("刷新  \tF4"), this, SLOT());//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/copy.png"),tr("复制  \tCtrl+C"), this, SLOT(SetPicToClipboard()));//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/paste.png"),tr("粘贴  \tCtrl+V"), this, SLOT(GetPicFromClipboard()));//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/save.png"),tr("保存  \tCtrl+S"), this, SLOT(SavePic()));//添加菜单动作
@@ -83,6 +84,12 @@ MyPaint::MyPaint(QWidget *parent) :
     tbar->addAction(rectAction);
     paintMenu->addAction(rectAction);
 
+    QAction *roundRectAction = new QAction(tr("&圆角矩形"), this);//矩形动作
+    roundRectAction->setIcon(QIcon(":/png/images/roundrect.png"));//图标
+    roundRectAction->setShortcut(QKeySequence(tr("Ctrl+I")));//热键
+    tbar->addAction(roundRectAction);
+    paintMenu->addAction(roundRectAction);
+
     QAction *ellipseAction = new QAction(tr("&椭圆"), this);//椭圆动作
     ellipseAction->setIcon(QIcon(":/png/images/ellipse.png"));//图标
     ellipseAction->setShortcut(QKeySequence(tr("Ctrl+E")));//热键
@@ -99,13 +106,13 @@ MyPaint::MyPaint(QWidget *parent) :
     copyAction->setIcon(QIcon(":/png/images/copy.png"));//图标
     copyAction->setShortcut(QKeySequence(tr("Ctrl+C")));//热键
     tbar->addAction(copyAction);
-    //paintMenu->addAction(textAction);
+    fileMenu->addAction(copyAction);
 
     QAction *pasteAction = new QAction(tr("&粘贴"), this);//文字动作
     pasteAction->setIcon(QIcon(":/png/images/paste.png"));//图标
     pasteAction->setShortcut(QKeySequence(tr("Ctrl+V")));//热键
     tbar->addAction(pasteAction);
-    //paintMenu->addAction(textAction);
+    fileMenu->addAction(pasteAction);
 
     QAction *coopAction = new QAction(tr("&合作"),this);
     coopAction->setIcon(QIcon(":/png/images/coop.png"));
@@ -144,6 +151,29 @@ MyPaint::MyPaint(QWidget *parent) :
     undoAction->setIcon(QIcon(":/png/images/undo.png"));//图标
     tbar->addAction(undoAction);//添加到工具栏
 
+    QAction *deleteAllAction = new QAction(tr("&删除所有"),this);
+    deleteAllAction->setIcon(QIcon(":/png/images/delete.png"));
+    tbar->addAction(deleteAllAction);
+
+    QAction *contactAction = new QAction(tr("&联系作者"),this);
+    contactAction->setIcon(QIcon(":/png/images/email.png"));
+    tbar->addAction(contactAction);
+    helpMenu->addAction(contactAction);
+
+    QAction *visitAction = new QAction(tr("&访问作者主页"),this);
+    visitAction->setIcon(QIcon(":/png/images/internet.png"));
+    tbar->addAction(visitAction);
+    helpMenu->addAction(visitAction);
+
+    QAction *visitProjectAction = new QAction(tr("&访问项目GitHub主页"),this);
+    visitProjectAction->setIcon(QIcon(":/png/images/github.png"));
+    tbar->addAction(visitProjectAction);
+    helpMenu->addAction(visitProjectAction);
+
+    QAction *exitAction = new QAction(tr("退出"),this);
+    exitAction->setIcon(QIcon(":/png/images/quit.png"));
+    tbar->addAction(exitAction);
+
     tMenuBar->addMenu(fileMenu);
     tMenuBar->addMenu(paintMenu);
     tMenuBar->addMenu(colorMenu);
@@ -166,6 +196,8 @@ MyPaint::MyPaint(QWidget *parent) :
     connect(linesAction, SIGNAL(triggered()), this, SLOT(Lines()));
     //矩形
     connect(rectAction, SIGNAL(triggered()), this, SLOT(Rects()));
+    //圆角矩形
+    connect(roundRectAction, SIGNAL(triggered()), this, SLOT(RoundRects()));
     //椭圆
     connect(ellipseAction, SIGNAL(triggered()), this, SLOT(Ellipses()));
     //文字创立
@@ -182,12 +214,22 @@ MyPaint::MyPaint(QWidget *parent) :
     connect(helpAction,SIGNAL(triggered()),this,SLOT(GetHelp()));
     //关于
     connect(aboutAction,SIGNAL(triggered()),this,SLOT(GetAbout()));
+    //Contact the author
+    connect(contactAction,SIGNAL(triggered()),this,SLOT(EmailToAuthor()));
+    //delete all
+    connect(deleteAllAction,SIGNAL(triggered()),this,SLOT(ClearAll()));
+    //visit main page
+    connect(visitAction,SIGNAL(triggered()),this,SLOT(VisitBlog()));
+    //visit github
+    connect(visitProjectAction,SIGNAL(triggered()),this,SLOT(VisitGithub()));
     //画笔
     connect(redBrushAction,SIGNAL(triggered()),this,SLOT(RedBrush()));
     connect(blueBrushAction,SIGNAL(triggered()),this,SLOT(BlueBrush()));
     connect(blackBrushAction,SIGNAL(triggered()),this,SLOT(BlackBrush()));
     //撤销
     connect(undoAction,SIGNAL(triggered()),this,SLOT(UndoPic()));
+    //exit
+    connect(exitAction,SIGNAL(triggered()),this,SLOT(close()));
 
     //状态栏
     QStatusBar *pstatusBar = statusBar();
@@ -212,7 +254,7 @@ void MyPaint::paintEvent(QPaintEvent *)
     QPixmap pix = _pixmap;//以_pixmap作为画布
     QPainter p(&pix);//将_pixmap作为画布
     QPen pn;
-    unsigned int i1=0,i2=0,i3=0,i4=0,i5=0;//各种图形的索引
+    unsigned int i1=0,i2=0,i3=0,i4=0,i5=0,i6=0;//各种图形的索引
 
     for(int c = 0;c<_shape.size();++c)//控制用户当前所绘图形总数
     {
@@ -248,6 +290,11 @@ void MyPaint::paintEvent(QPaintEvent *)
             p.setRenderHints(QPainter::TextAntialiasing);//反锯齿
             p.drawText(_tpoint.at(i5),_text.at(i5));
             i5++;
+        }
+        else if(_shape.at(c) == 6)//圆角矩形
+        {
+            p.setRenderHints(QPainter::TextAntialiasing);//反锯齿
+            p.drawRoundedRect(_roundrects.at(i6++),20,20);
         }
     }
     p.end();
@@ -326,6 +373,23 @@ void MyPaint::mousePressEvent(QMouseEvent *e)
             _tEdit->clear();//因为全局只有一个，所以使用之前要清空
             _shape.append(5);
         }
+        else if(_drawType == 6)//圆角矩形
+        {
+            _lpress = true;//左键按下标志
+            if(!_drag)//非拖拽模式
+            {
+                QRect rect;//鼠标按下，矩形开始
+                _roundrects.append(rect);//将新圆角矩形添加到圆角矩形集合
+                QRect& lastRoundRect = _roundrects.last();//拿到新矩形
+                lastRoundRect.setTopLeft(e->pos());//记录鼠标的坐标(新矩形的左上角坐标)
+                 _shape.append(6);
+            }
+            else if(_roundrects.last().contains(e->pos()))//拖拽模式、如果在矩形内按下
+            {
+                _begin = e->pos();//记录拖拽开始的坐标位置,方便计算位移
+
+            }
+        }
 
     }
 }
@@ -338,8 +402,13 @@ void MyPaint::AddTexts()//当输入框文本改变时调用
 
 void MyPaint::mouseMoveEvent(QMouseEvent *e)
 {
-    if(_drag && ((_drawType == 2 && _rects.last().contains(e->pos()))
-            || (_drawType == 3 && _ellipse.last().contains(e->pos()) )))
+    if(_drag &&
+       (
+           (_drawType == 2 && _rects.last().contains(e->pos()))
+        || (_drawType == 3 && _ellipse.last().contains(e->pos()))
+        || (_drawType == 6 && _roundrects.last().contains(e->pos()))
+        )
+       )
     {
         setCursor(Qt::SizeAllCursor);//拖拽模式下，并且在拖拽图形中，将光标形状改为十字
     }
@@ -418,6 +487,29 @@ void MyPaint::mouseMoveEvent(QMouseEvent *e)
             pstatusLabel->setText("画直线");//更新状态栏
             update();//触发窗体重绘
         }
+        else if(_drawType == 6)
+        {
+            if(_drag == 0)//非拖拽
+            {
+                QRect& lastRoundRect = _roundrects.last();//拿到新圆角矩形
+                lastRoundRect.setBottomRight(e->pos());//更新圆角矩形的右下角坐标
+                pstatusLabel->setText("画圆角矩形");//更新状态栏
+            }
+            else//拖拽模式
+            {
+                QRect& lastRoundRect = _roundrects.last();//拿到最后添加的矩形
+                if(lastRoundRect.contains(e->pos()))//在矩形的内部
+                {
+                    int dx = e->pos().x()-_begin.x();//横向移动x
+                    int dy = e->pos().y()-_begin.y();//纵向移动y
+                    lastRoundRect = lastRoundRect.adjusted(dx,dy,dx,dy);//更新矩形的位置
+                    _begin = e->pos();//刷新拖拽点起始坐标
+                }
+                pstatusLabel->setText("拖动圆角矩形");//更新状态栏
+
+            }
+            update();//触发窗体重绘
+        }
     }
     else
     {
@@ -475,6 +567,19 @@ void MyPaint::mouseReleaseEvent(QMouseEvent *e)
             _lpress = false;
 
         }
+        else if(_drawType == 6)
+        {
+            QRect& lastRoundRect = _roundrects.last();//拿到新矩形
+            if(!_drag)
+            {
+                lastRoundRect.setBottomRight(e->pos());//不是拖拽时，更新矩形的右下角坐标)
+                //刚画完矩形，将光标设置到新矩形的中心位置，并进入拖拽模式
+                this->cursor().setPos(this->cursor().pos().x()-lastRoundRect.width()/2,this->cursor().pos().y()-lastRoundRect.height()/2);
+                _drag = 1;//进入拖拽模式
+
+            }
+            _lpress = false;//标志左键释放
+        }
     }
 }
 
@@ -501,6 +606,14 @@ void MyPaint::Rects()
     pstatusLabel->setText("矩形");
     update();
 
+}
+
+void MyPaint::RoundRects()
+{
+    _drawType = 6;//圆角矩形
+    _tEdit->hide();
+    pstatusLabel->setText("圆角矩形");
+    update();
 }
 
 void MyPaint::Ellipses()
@@ -617,6 +730,8 @@ void MyPaint::keyPressEvent(QKeyEvent *e) //按键事件
                          break;
                  case 4: _line.pop_back();
                          break;
+                 case 6:_roundrects.pop_back();
+                         break;
              }
              _shape.pop_back();
              _drag = 0;//设置为非拖拽模式
@@ -703,6 +818,8 @@ void MyPaint::UndoPic(){
                     break;
             case 4: _line.pop_back();
                     break;
+            case 6:_roundrects.pop_back();
+                break;
         }
         _shape.pop_back();
         _drag = 0;//设置为非拖拽模式
@@ -742,4 +859,40 @@ void MyPaint::SetPicToClipboard(){
 
     //mimeData.setImageData(pixmap);
     clipboard->setPixmap(pixmap);
+}
+
+void MyPaint::EmailToAuthor(){
+    QDesktopServices::openUrl(QUrl("mailto:tihongsheng@foxmail.com"));
+}
+
+void MyPaint::VisitBlog(){
+    QDesktopServices::openUrl(QUrl("https://bluebonnet27.github.io"));
+}
+
+void MyPaint::VisitGithub(){
+    QDesktopServices::openUrl(QUrl("https://github.com/bluebonnet27/copaint"));
+}
+
+void MyPaint::ClearAll(){
+    while(_shape.size()>0)
+    {
+        switch(_shape.last())
+        {
+            case 1: _lines.pop_back();
+                    break;
+            case 2: _rects.pop_back();
+                    break;
+            case 3: _ellipse.pop_back();
+                    break;
+            case 4: _line.pop_back();
+                    break;
+            case 6:_roundrects.pop_back();
+                    break;
+        }
+        _shape.pop_back();
+    }
+    _drag = 0;//设置为非拖拽模式
+    _drawType = 0;//不画任何图形
+    pstatusLabel->setText("所有图形都被清除了");//更新状态栏提示
+    update();
 }

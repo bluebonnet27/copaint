@@ -27,6 +27,8 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QMimeData>
+#include <QDesktopServices>
+#include <QUrl>
 
 using namespace std;
 
@@ -67,6 +69,7 @@ public:
     QVector<QVector<QPoint> > _lines;//线条集合(一条线条可包含多个线段)
     QVector<QRect> _rects;//矩形集合
     QVector<QRect> _ellipse;//椭圆集合
+    QVector<QRect> _roundrects;//圆角矩形集合
     QVector<QRect>  _line;//直线集合
     QVector<QString>  _text;//文字集合
     QVector<QPoint>  _tpoint;//文字位置集合
@@ -81,6 +84,7 @@ public slots:
     void UndoPic();//撤销操作
     void PointCursor();//恢复鼠标指针
     void Rects();//画矩形
+    void RoundRects();//画圆角矩形
     void Ellipses();//画椭圆
     void Line();//画直线
     void OpenPic();//打开图片
@@ -89,10 +93,14 @@ public slots:
     void RedBrush();
     void BlueBrush();
     void BlackBrush();
+    void ClearAll();//清除所有图形
     void GetPicFromClipboard();//从剪切板获取图片
     void SetPicToClipboard();//把图片复制到剪切板里
     void GetHelp();//获取帮助
     void GetAbout();//获取软件信息
+    void EmailToAuthor();//给作者发邮件
+    void VisitBlog();//访问作者主页
+    void VisitGithub();//访问项目GitHub主页
     void ErrorFunction();//未开发的功能的提示
 };
 
