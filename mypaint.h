@@ -29,6 +29,7 @@
 #include <QMimeData>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QPushButton>
 
 using namespace std;
 
@@ -102,6 +103,7 @@ public slots:
     void VisitBlog();//访问作者主页
     void VisitGithub();//访问项目GitHub主页
     void ErrorFunction();//未开发的功能的提示
+    void CoopMeet();
 };
 
 #endif // MYPAINT_H

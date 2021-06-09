@@ -35,7 +35,7 @@ MyPaint::MyPaint(QWidget *parent) :
     //tbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
     _Rmenu = new QMenu(this);//创建右键菜单
-    _Rmenu->addAction(QIcon(":/png/images/refresh.png"),tr("刷新  \tF4"), this, SLOT());//添加菜单动作
+    _Rmenu->addAction(QIcon(":/png/images/refresh.png"),tr("刷新  \tF5"), this, SLOT());//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/copy.png"),tr("复制  \tCtrl+C"), this, SLOT(SetPicToClipboard()));//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/paste.png"),tr("粘贴  \tCtrl+V"), this, SLOT(GetPicFromClipboard()));//添加菜单动作
     _Rmenu->addAction(QIcon(":/png/images/save.png"),tr("保存  \tCtrl+S"), this, SLOT(SavePic()));//添加菜单动作
@@ -62,9 +62,10 @@ MyPaint::MyPaint(QWidget *parent) :
     tbar->addAction(saveasAction);//添加到工具栏
     fileMenu->addAction(saveasAction);
 
-    QAction *cursorAction = new QAction(tr("&指针"), this);//直线动作
+    QAction *cursorAction = new QAction(tr("&指针"), this);//指针动作
     cursorAction->setIcon(QIcon(":/png/images/cursor.png"));//图标
     tbar->addAction(cursorAction);//添加到工具栏
+    paintMenu->addAction(cursorAction);
 
     QAction *lineAction = new QAction(tr("&直线"), this);//直线动作
     lineAction->setIcon(QIcon(":/png/images/line.png"));//图标
@@ -150,10 +151,12 @@ MyPaint::MyPaint(QWidget *parent) :
     QAction *undoAction = new QAction(tr("&撤销"), this);//打开动作
     undoAction->setIcon(QIcon(":/png/images/undo.png"));//图标
     tbar->addAction(undoAction);//添加到工具栏
+    paintMenu->addAction(undoAction);
 
     QAction *deleteAllAction = new QAction(tr("&删除所有"),this);
     deleteAllAction->setIcon(QIcon(":/png/images/delete.png"));
     tbar->addAction(deleteAllAction);
+    paintMenu->addAction(deleteAllAction);
 
     QAction *contactAction = new QAction(tr("&联系作者"),this);
     contactAction->setIcon(QIcon(":/png/images/email.png"));
@@ -209,7 +212,7 @@ MyPaint::MyPaint(QWidget *parent) :
     //粘贴
     connect(pasteAction,SIGNAL(triggered()),this,SLOT(GetPicFromClipboard()));
     //合作
-    connect(coopAction,SIGNAL(triggered()),this,SLOT(ErrorFunction()));
+    connect(coopAction,SIGNAL(triggered()),this,SLOT(CoopMeet()));
     //帮助
     connect(helpAction,SIGNAL(triggered()),this,SLOT(GetHelp()));
     //关于
@@ -253,7 +256,10 @@ void MyPaint::paintEvent(QPaintEvent *)
     }
     QPixmap pix = _pixmap;//以_pixmap作为画布
     QPainter p(&pix);//将_pixmap作为画布
+    //p.setBrush(_brush);
     QPen pn;
+    pn.setBrush(_brush);
+    p.setPen(pn);
     unsigned int i1=0,i2=0,i3=0,i4=0,i5=0,i6=0;//各种图形的索引
 
     for(int c = 0;c<_shape.size();++c)//控制用户当前所绘图形总数
@@ -783,6 +789,24 @@ void MyPaint::GetAbout(){
     aboutLabel->setMargin(10);
 
     aboutDialog->exec();
+}
+
+void MyPaint::CoopMeet(){
+    QDialog *coopDialog = new QDialog();
+    coopDialog->resize(800,600);
+    coopDialog->setWindowIcon(QIcon(":/png/images/coop.png"));
+    coopDialog->setWindowTitle("合作");
+
+    QLabel *aboutLabel = new QLabel(coopDialog);
+
+    aboutLabel->setMargin(10);
+    aboutLabel->setText("正在建立连接... ...");
+
+    QPushButton *btnConnect = new QPushButton(tr("中断连接"),coopDialog);
+    QPushButton *btnNew = new QPushButton(tr("建立新的连接"),coopDialog);
+    QPushButton *btnHelp = new QPushButton(tr("帮助"),coopDialog);
+
+    coopDialog->exec();
 }
 
 void MyPaint::ErrorFunction(){
